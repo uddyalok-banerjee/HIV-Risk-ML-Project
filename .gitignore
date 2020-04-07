@@ -1,8 +1,10 @@
 /target/
-.idea/workspace.xml
+.idea/
+*.iml
 .classpath
 .git_old/config
 .git_old/description
 .git_old/FETCH_HEAD
 .git_old/HEAD
 .git_old/hooks/applypatch-msg.sample
+/scripts/deeivegan.sh
