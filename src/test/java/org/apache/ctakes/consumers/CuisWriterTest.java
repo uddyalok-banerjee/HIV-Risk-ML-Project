@@ -1,7 +1,14 @@
-package org.apache.ctakes.pipelines;
+package org.apache.ctakes.consumers;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.ctakes.pipelines.CTakesResult;
+import org.apache.ctakes.pipelines.RushEndToEndPipeline;
+import org.apache.ctakes.pipelines.RushSimplePipeline;
 import org.apache.ctakes.utils.RushConfig;
+import org.apache.ctakes.utils.Utils;
+import org.apache.uima.analysis_engine.AnalysisEngine;
+import org.apache.uima.collection.CollectionReader;
+import org.apache.uima.fit.factory.AnalysisEngineFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,10 +20,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
-
-public class RushEndToEndPipelineTest {
+public class CuisWriterTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -36,30 +42,25 @@ public class RushEndToEndPipelineTest {
     public void testPipeline() throws Exception {
 
         File inputDirectory = Paths.get("src/test/resources/input").toFile();
+        File outputDirectory = Paths.get("src/test/resources/expectedOutput").toFile();
         File expectedXMIsDirectory = Paths.get("src/test/resources/expectedOutput/xmis/").toFile();
         File expectedCUIsDirectory = Paths.get("src/test/resources/expectedOutput/cuis/").toFile();
 
-        File masterFolder = Paths.get("resources").toFile();
-        File tempMasterFolder = folder.newFolder("tempMasterFolder");
+        AnalysisEngine cuisAnnotationConsumer = AnalysisEngineFactory.createEngine(CuisWriter.class);
 
-        RushConfig config = new RushConfig(masterFolder.getAbsolutePath(),
-                tempMasterFolder.getAbsolutePath());
-        config.initialize();
-        RushEndToEndPipeline pipeline = new RushEndToEndPipeline(config, true);
+        for (File file : expectedXMIsDirectory.listFiles()) {
+            String xmi = FileUtils.readFileToString(file);
 
-        for (File file : inputDirectory.listFiles()) {
-            String t = FileUtils.readFileToString(file);
-            CTakesResult result = pipeline.getResult(file.getAbsolutePath(), 1, t);
+            CollectionReader xmlCollectionReader = Utils.getCollectionReader(xmi);
 
-            String expectedOutput = FileUtils.readFileToString(new File(expectedXMIsDirectory, file.getName()));
-            String expectedCuis = FileUtils.readFileToString(new File(expectedCUIsDirectory, file.getName()));
+            String cuis = RushSimplePipeline.runPipeline(xmlCollectionReader, cuisAnnotationConsumer);
 
-//            assertEquals(expectedOutput,result.getOutput()); //TODO find way to compare
-            assertEquals(expectedCuis, result.getCuis());
+            String expectedCuis = FileUtils.readFileToString(new File(expectedCUIsDirectory  , file.getName()));
+
+            assertEquals(expectedCuis, cuis);
         }
-        System.out.println("Closing Pipeline");
-        pipeline.close();
-        config.close();
     }
+
+
 
 }

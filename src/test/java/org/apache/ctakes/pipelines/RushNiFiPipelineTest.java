@@ -1,3 +1,5 @@
+
+
 package org.apache.ctakes.pipelines;
 
 import org.apache.commons.io.FileUtils;
@@ -16,7 +18,7 @@ import java.nio.file.Paths;
 import static org.junit.Assert.assertEquals;
 
 
-public class RushEndToEndPipelineTest {
+public class RushNiFiPipelineTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -45,7 +47,7 @@ public class RushEndToEndPipelineTest {
         RushConfig config = new RushConfig(masterFolder.getAbsolutePath(),
                 tempMasterFolder.getAbsolutePath());
         config.initialize();
-        RushEndToEndPipeline pipeline = new RushEndToEndPipeline(config, true);
+        RushNiFiPipeline pipeline = new RushNiFiPipeline(config, true);
 
         for (File file : inputDirectory.listFiles()) {
             String t = FileUtils.readFileToString(file);
