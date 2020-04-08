@@ -4,12 +4,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.ctakes.utils.RushConfig;
 import org.junit.Rule;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import static org.junit.Assert.assertEquals;
 
 
 public class RushEndToEndPipelineTest {
@@ -43,11 +43,8 @@ public class RushEndToEndPipelineTest {
             String expectedOutput = FileUtils.readFileToString(new File(outputDirectory.getAbsolutePath() + "/xmis/" + file.getName()));
             String expectedCuis = FileUtils.readFileToString(new File(outputDirectory.getAbsolutePath() + "/cuis/" + file.getName()));
 
-//            assertEquals(expectedOutput,result.getOutput());
-            assertEquals(expectedCuis,result.getCuis());
-
-            FileUtils.write(new File(new File(outputDirectory, "xmis"), file.getName()), result.getOutput());
-            FileUtils.write(new File(new File(outputDirectory, "cuis"), file.getName()), result.getCuis());
+//            assertEquals(expectedOutput,result.getOutput()); //TODO find way to compare
+            assertEquals(expectedCuis, result.getCuis());
         }
         System.out.println("Closing Pipeline");
         pipeline.close();
