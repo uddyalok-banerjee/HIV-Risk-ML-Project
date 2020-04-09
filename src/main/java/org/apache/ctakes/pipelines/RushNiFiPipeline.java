@@ -137,26 +137,25 @@ public class RushNiFiPipeline implements AutoCloseable {
 
         ensureCorrectSetup(masterFolder);
 
-        RushConfig config = new RushConfig(masterFolder.getAbsolutePath(),
-                tempMasterFolder.getAbsolutePath());
-        config.initialize();
-        RushNiFiPipeline pipeline = new RushNiFiPipeline(config, true);
+        try (RushConfig config = new RushConfig(masterFolder.getAbsolutePath(), tempMasterFolder.getAbsolutePath())) {
+            config.initialize();
+            try (RushNiFiPipeline pipeline = new RushNiFiPipeline(config, true)) {
+                pipeline.execute(inputDirectory, outputDirectory);
+            }
+        }
+    }
 
+    void execute(File inputDirectory, File outputDirectory) throws Exception {
         for (File file : Objects.requireNonNull(inputDirectory.listFiles())) {
             String t = FileUtils.readFileToString(file);
-            CTakesResult result = pipeline.getResult(file.getAbsolutePath(), 1, t);
-            String cuis = pipeline.getCuis(result);
-            String granular = pipeline.getGranular(result);
+            CTakesResult result = getResult(file.getAbsolutePath(), 1, t);
+            String cuis = getCuis(result);
+            String granular = getGranular(result);
 
             FileUtils.write(new File(new File(outputDirectory, "xmis"), file.getName()), result.getOutput());
             FileUtils.write(new File(new File(outputDirectory, "cuis"), file.getName()), cuis);
             FileUtils.write(new File(new File(outputDirectory, "granular"), file.getName()), granular);
         }
-        System.out.println("Closing Pipeline");
-        pipeline.close();
-        config.close();
-        //FileUtils.deleteDirectory(newConfigFolder);
-        System.out.println("Closed Pipeline, Now Exiting");
     }
 
     private static void ensureCorrectSetup(File masterFolder) throws IOException {

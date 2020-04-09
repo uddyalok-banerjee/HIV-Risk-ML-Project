@@ -35,7 +35,7 @@ public class RushNiFiPipelineTest {
 
     @SuppressWarnings("unused")
     @Test
-    public void testPipeline() throws Exception {
+    public void testExecutePipeline() throws Exception {
 
         File inputDirectory = Paths.get("src/test/resources/input").toFile();
         File expectedXMIsDirectory = Paths.get("src/test/resources/expectedOutput/xmis/").toFile();
@@ -44,27 +44,32 @@ public class RushNiFiPipelineTest {
 
         File masterFolder = Paths.get("resources").toFile();
         File tempMasterFolder = folder.newFolder("tempMasterFolder");
+        File outputDirectory = folder.newFolder("outputDirectory");
+        File actualCuis = new File(outputDirectory, "cuis");
+        File actualXmis = new File(outputDirectory, "xmis");
+        File actualGranular = new File(outputDirectory, "granular");
 
         try (RushConfig config = new RushConfig(masterFolder.getAbsolutePath(), tempMasterFolder.getAbsolutePath())) {
             config.initialize();
             try (RushNiFiPipeline pipeline = new RushNiFiPipeline(config, true)) {
-                for (File file : Objects.requireNonNull(inputDirectory.listFiles())) {
-                    String t = FileUtils.readFileToString(file);
-                    CTakesResult result = pipeline.getResult(file.getAbsolutePath(), 1, t);
-                    String cuis = pipeline.getCuis(result);
-                    String granular = pipeline.getGranular(result);
-
-                    String expectedCuis = FileUtils.readFileToString(new File(expectedCUIsDirectory, file.getName()));
-                    assertEquals(expectedCuis, cuis);
-
-                    String expectedGranular = FileUtils.readFileToString(new File(expectedGranularDirectory, file.getName()));
-                    assertEquals(expectedGranular, granular);
-
-//                    String expectedOutput = FileUtils.readFileToString(new File(expectedXMIsDirectory, file.getName()));
-//                    assertEquals(expectedOutput, result.getOutput()); // TODO find way to compare directly
-                }
+                pipeline.execute(inputDirectory, outputDirectory);
             }
         }
 
+        for (File file : Objects.requireNonNull(inputDirectory.listFiles())) {
+
+            // TODO find way to compare directly
+//            String xmi = FileUtils.readFileToString(new File(actualXmis, file.getName()));
+//            String expectedXmi = FileUtils.readFileToString(new File(expectedXMIsDirectory, file.getName()));
+//            assertEquals(xmi, expectedXmi);
+
+            String cuis = FileUtils.readFileToString(new File(actualCuis, file.getName()));
+            String expectedCuis = FileUtils.readFileToString(new File(expectedCUIsDirectory, file.getName()));
+            assertEquals(expectedCuis, cuis);
+
+            String granular = FileUtils.readFileToString(new File(actualGranular, file.getName()));
+            String expectedGranular = FileUtils.readFileToString(new File(expectedGranularDirectory, file.getName()));
+            assertEquals(expectedGranular, granular);
+        }
     }
 }
