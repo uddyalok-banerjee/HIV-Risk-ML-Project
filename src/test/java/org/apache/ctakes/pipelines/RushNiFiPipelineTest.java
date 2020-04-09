@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 
@@ -34,6 +35,7 @@ public class RushNiFiPipelineTest {
         Files.createSymbolicLink(link, Paths.get("resources").toAbsolutePath());
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testPipeline() throws Exception {
 
@@ -44,24 +46,22 @@ public class RushNiFiPipelineTest {
         File masterFolder = Paths.get("resources").toFile();
         File tempMasterFolder = folder.newFolder("tempMasterFolder");
 
-        RushConfig config = new RushConfig(masterFolder.getAbsolutePath(),
-                tempMasterFolder.getAbsolutePath());
-        config.initialize();
-        RushNiFiPipeline pipeline = new RushNiFiPipeline(config, true);
 
-        for (File file : inputDirectory.listFiles()) {
-            String t = FileUtils.readFileToString(file);
-            CTakesResult result = pipeline.getResult(file.getAbsolutePath(), 1, t);
+        try (RushConfig config = new RushConfig(masterFolder.getAbsolutePath(), tempMasterFolder.getAbsolutePath())) {
+            config.initialize();
+            try (RushNiFiPipeline pipeline = new RushNiFiPipeline(config, true)) {
+                for (File file : Objects.requireNonNull(inputDirectory.listFiles())) {
+                    String t = FileUtils.readFileToString(file);
+                    CTakesResult result = pipeline.getResult(file.getAbsolutePath(), 1, t);
 
-            String expectedOutput = FileUtils.readFileToString(new File(expectedXMIsDirectory, file.getName()));
-            String expectedCuis = FileUtils.readFileToString(new File(expectedCUIsDirectory, file.getName()));
+                    String expectedCuis = FileUtils.readFileToString(new File(expectedCUIsDirectory, file.getName()));
+                    assertEquals(expectedCuis, result.getCuis());
 
-//            assertEquals(expectedOutput,result.getOutput()); //TODO find way to compare
-            assertEquals(expectedCuis, result.getCuis());
+//                    String expectedOutput = FileUtils.readFileToString(new File(expectedXMIsDirectory, file.getName()));
+//                    assertEquals(expectedOutput, result.getOutput()); // TODO find way to compare
+                }
+            }
         }
-        System.out.println("Closing Pipeline");
-        pipeline.close();
-        config.close();
-    }
 
+    }
 }
