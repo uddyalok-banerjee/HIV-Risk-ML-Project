@@ -1,10 +1,7 @@
 package org.apache.ctakes.consumers;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.ctakes.pipelines.CTakesResult;
-import org.apache.ctakes.pipelines.RushEndToEndPipeline;
 import org.apache.ctakes.pipelines.RushSimplePipeline;
-import org.apache.ctakes.utils.RushConfig;
 import org.apache.ctakes.utils.Utils;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.collection.CollectionReader;
@@ -22,7 +19,7 @@ import java.nio.file.Paths;
 
 import static org.junit.Assert.*;
 
-public class CuisWriterTest {
+public class GranularJsonWriterTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -44,22 +41,20 @@ public class CuisWriterTest {
         File inputDirectory = Paths.get("src/test/resources/input").toFile();
         File outputDirectory = Paths.get("src/test/resources/expectedOutput").toFile();
         File expectedXMIsDirectory = Paths.get("src/test/resources/expectedOutput/xmis/").toFile();
-        File expectedCUIsDirectory = Paths.get("src/test/resources/expectedOutput/cuis/").toFile();
+        File expectedOverviewsDirectory = Paths.get("src/test/resources/expectedOutput/overviews/").toFile();
 
-        AnalysisEngine cuisAnnotationConsumer = AnalysisEngineFactory.createEngine(CuisWriter.class);
+        AnalysisEngine engine = AnalysisEngineFactory.createEngine(GranularJsonWriter.class);
 
         for (File file : expectedXMIsDirectory.listFiles()) {
             String xmi = FileUtils.readFileToString(file);
-
             CollectionReader xmlCollectionReader = Utils.getCollectionReader(xmi);
 
-            String cuis = RushSimplePipeline.runPipeline(xmlCollectionReader, cuisAnnotationConsumer);
+            String overview = RushSimplePipeline.runPipeline(xmlCollectionReader, engine);
 
-            String expectedCuis = FileUtils.readFileToString(new File(expectedCUIsDirectory, file.getName()));
+            String expectedOverview = FileUtils.readFileToString(new File(expectedOverviewsDirectory, file.getName()));
 
-            assertEquals(expectedCuis, cuis);
+            assertEquals(expectedOverview, overview);
         }
     }
-
 
 }
