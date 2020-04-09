@@ -88,6 +88,11 @@ public class RushNiFiPipeline implements AutoCloseable {
         }
     }
 
+    String getCuis(CTakesResult result) throws Exception {
+        CollectionReader xmlCollectionReader = Utils.getCollectionReader(result.getOutput());
+        return RushSimplePipeline.runPipeline(xmlCollectionReader, cuisAnnotationConsumer);
+    }
+
     public CTakesResult getResult(String filePath, int partNo, String fileContent) throws Exception {
         String xml10pattern = "[^"
                 + "\u0009\r\n"
@@ -100,11 +105,6 @@ public class RushNiFiPipeline implements AutoCloseable {
         CTakesFilePart part = new CTakesFilePart(filePath, partNo, legalFC);
         fileContentReader.setConfigParameterValue("ctakesFilePart", part);
         CTakesResult result = RushPipeline.processCas(rawFileCas, fileContentReader, xmiAnnotationEngine);
-
-        CollectionReader xmlCollectionReader = Utils.getCollectionReader(result.getOutput());
-
-        String cuis = RushSimplePipeline.runPipeline(xmlCollectionReader, cuisAnnotationConsumer);
-        result.setCuis(cuis);
 
         rawFileCas.reset();
         return result;
@@ -137,8 +137,10 @@ public class RushNiFiPipeline implements AutoCloseable {
         for (File file : Objects.requireNonNull(inputDirectory.listFiles())) {
             String t = FileUtils.readFileToString(file);
             CTakesResult result = pipeline.getResult(file.getAbsolutePath(), 1, t);
+            String cuis = pipeline.getCuis(result);
+
             FileUtils.write(new File(new File(outputDirectory, "xmis"), file.getName()), result.getOutput());
-            FileUtils.write(new File(new File(outputDirectory, "cuis"), file.getName()), result.getCuis());
+            FileUtils.write(new File(new File(outputDirectory, "cuis"), file.getName()), cuis);
         }
         System.out.println("Closing Pipeline");
         pipeline.close();

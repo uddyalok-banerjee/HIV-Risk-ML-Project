@@ -1,5 +1,3 @@
-
-
 package org.apache.ctakes.pipelines;
 
 import org.apache.commons.io.FileUtils;
@@ -46,19 +44,19 @@ public class RushNiFiPipelineTest {
         File masterFolder = Paths.get("resources").toFile();
         File tempMasterFolder = folder.newFolder("tempMasterFolder");
 
-
         try (RushConfig config = new RushConfig(masterFolder.getAbsolutePath(), tempMasterFolder.getAbsolutePath())) {
             config.initialize();
             try (RushNiFiPipeline pipeline = new RushNiFiPipeline(config, true)) {
                 for (File file : Objects.requireNonNull(inputDirectory.listFiles())) {
                     String t = FileUtils.readFileToString(file);
                     CTakesResult result = pipeline.getResult(file.getAbsolutePath(), 1, t);
+                    String cuis = pipeline.getCuis(result);
 
                     String expectedCuis = FileUtils.readFileToString(new File(expectedCUIsDirectory, file.getName()));
-                    assertEquals(expectedCuis, result.getCuis());
+                    assertEquals(expectedCuis, cuis);
 
 //                    String expectedOutput = FileUtils.readFileToString(new File(expectedXMIsDirectory, file.getName()));
-//                    assertEquals(expectedOutput, result.getOutput()); // TODO find way to compare
+//                    assertEquals(expectedOutput, result.getOutput()); // TODO find way to compare directly
                 }
             }
         }
