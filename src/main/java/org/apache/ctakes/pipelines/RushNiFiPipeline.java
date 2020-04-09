@@ -10,6 +10,7 @@ import org.apache.ctakes.chunker.ae.Chunker;
 import org.apache.ctakes.chunker.ae.DefaultChunkCreator;
 import org.apache.ctakes.chunker.ae.adjuster.ChunkAdjuster;
 import org.apache.ctakes.consumers.CuisWriter;
+import org.apache.ctakes.consumers.GranularJsonWriter;
 import org.apache.ctakes.contexttokenizer.ae.ContextDependentTokenizerAnnotator;
 import org.apache.ctakes.core.ae.OverlapAnnotator;
 import org.apache.ctakes.core.ae.SentenceDetector;
@@ -67,6 +68,7 @@ public class RushNiFiPipeline implements AutoCloseable {
 
     private transient AnalysisEngine xmiAnnotationEngine;
     private transient AnalysisEngine cuisAnnotationConsumer;
+    private transient AnalysisEngine granularAnnotationConsumer;
     private transient CollectionReader fileContentReader;
     private String lookupXmlPath;
     private String masterFolder;
@@ -79,6 +81,7 @@ public class RushNiFiPipeline implements AutoCloseable {
             masterFolder = config.getMasterRoot().getAbsolutePath();
             xmiAnnotationEngine = getXMIWritingPreprocessorAggregateBuilder().createAggregate();
             cuisAnnotationConsumer = AnalysisEngineFactory.createEngine(CuisWriter.class);
+            granularAnnotationConsumer = AnalysisEngineFactory.createEngine(GranularJsonWriter.class);
             fileContentReader = RushFilesCollectionReader.getCollectionReader(FAKE_DIR);
 
 
@@ -91,6 +94,11 @@ public class RushNiFiPipeline implements AutoCloseable {
     String getCuis(CTakesResult result) throws Exception {
         CollectionReader xmlCollectionReader = Utils.getCollectionReader(result.getOutput());
         return RushSimplePipeline.runPipeline(xmlCollectionReader, cuisAnnotationConsumer);
+    }
+
+    String getGranular(CTakesResult result) throws Exception {
+        CollectionReader xmlCollectionReader = Utils.getCollectionReader(result.getOutput());
+        return RushSimplePipeline.runPipeline(xmlCollectionReader, granularAnnotationConsumer);
     }
 
     public CTakesResult getResult(String filePath, int partNo, String fileContent) throws Exception {
@@ -138,9 +146,11 @@ public class RushNiFiPipeline implements AutoCloseable {
             String t = FileUtils.readFileToString(file);
             CTakesResult result = pipeline.getResult(file.getAbsolutePath(), 1, t);
             String cuis = pipeline.getCuis(result);
+            String granular = pipeline.getGranular(result);
 
             FileUtils.write(new File(new File(outputDirectory, "xmis"), file.getName()), result.getOutput());
             FileUtils.write(new File(new File(outputDirectory, "cuis"), file.getName()), cuis);
+            FileUtils.write(new File(new File(outputDirectory, "granular"), file.getName()), granular);
         }
         System.out.println("Closing Pipeline");
         pipeline.close();

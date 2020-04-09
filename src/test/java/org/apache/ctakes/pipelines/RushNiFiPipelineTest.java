@@ -40,6 +40,7 @@ public class RushNiFiPipelineTest {
         File inputDirectory = Paths.get("src/test/resources/input").toFile();
         File expectedXMIsDirectory = Paths.get("src/test/resources/expectedOutput/xmis/").toFile();
         File expectedCUIsDirectory = Paths.get("src/test/resources/expectedOutput/cuis/").toFile();
+        File expectedGranularDirectory = Paths.get("src/test/resources/expectedOutput/granular/").toFile();
 
         File masterFolder = Paths.get("resources").toFile();
         File tempMasterFolder = folder.newFolder("tempMasterFolder");
@@ -51,9 +52,13 @@ public class RushNiFiPipelineTest {
                     String t = FileUtils.readFileToString(file);
                     CTakesResult result = pipeline.getResult(file.getAbsolutePath(), 1, t);
                     String cuis = pipeline.getCuis(result);
+                    String granular = pipeline.getGranular(result);
 
                     String expectedCuis = FileUtils.readFileToString(new File(expectedCUIsDirectory, file.getName()));
                     assertEquals(expectedCuis, cuis);
+
+                    String expectedGranular = FileUtils.readFileToString(new File(expectedGranularDirectory, file.getName()));
+                    assertEquals(expectedGranular, granular);
 
 //                    String expectedOutput = FileUtils.readFileToString(new File(expectedXMIsDirectory, file.getName()));
 //                    assertEquals(expectedOutput, result.getOutput()); // TODO find way to compare directly
