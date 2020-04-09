@@ -1,6 +1,7 @@
 package org.apache.ctakes.pipelines;
 
 import com.google.common.base.Throwables;
+import com.google.gson.Gson;
 import com.lexicalscope.jewel.cli.CliFactory;
 import com.lexicalscope.jewel.cli.Option;
 import org.apache.commons.io.FileUtils;
@@ -65,6 +66,7 @@ public class RushNiFiPipeline implements AutoCloseable {
     }
 
     public static final String FAKE_DIR = "/tmp/random/";
+    private static Gson gson = new Gson();
 
     private transient AnalysisEngine xmiAnnotationEngine;
     private transient AnalysisEngine cuisAnnotationConsumer;
@@ -91,13 +93,13 @@ public class RushNiFiPipeline implements AutoCloseable {
         }
     }
 
-    String getCuis(CTakesResult result) throws Exception {
-        CollectionReader xmlCollectionReader = Utils.getCollectionReader(result.getOutput());
+    String getCuis(final String xmi) throws Exception {
+        CollectionReader xmlCollectionReader = Utils.getCollectionReader(xmi);
         return RushSimplePipeline.runPipeline(xmlCollectionReader, cuisAnnotationConsumer);
     }
 
-    String getGranular(CTakesResult result) throws Exception {
-        CollectionReader xmlCollectionReader = Utils.getCollectionReader(result.getOutput());
+    String getGranular(final String xmi) throws Exception {
+        CollectionReader xmlCollectionReader = Utils.getCollectionReader(xmi);
         return RushSimplePipeline.runPipeline(xmlCollectionReader, granularAnnotationConsumer);
     }
 
@@ -147,15 +149,35 @@ public class RushNiFiPipeline implements AutoCloseable {
 
     void execute(File inputDirectory, File outputDirectory) throws Exception {
         for (File file : Objects.requireNonNull(inputDirectory.listFiles())) {
-            String t = FileUtils.readFileToString(file);
-            CTakesResult result = getResult(file.getAbsolutePath(), 1, t);
-            String cuis = getCuis(result);
-            String granular = getGranular(result);
+            String rawText = FileUtils.readFileToString(file);
+            CTakesResult result = getResult(file.getAbsolutePath(), 1, rawText);
 
-            FileUtils.write(new File(new File(outputDirectory, "xmis"), file.getName()), result.getOutput());
+            String xmi = result.getOutput();
+            String cuis = getCuis(xmi);
+            String granular = getGranular(xmi);
+            String overview = getOverview(rawText, xmi);
+
+            FileUtils.write(new File(new File(outputDirectory, "xmis"), file.getName()), xmi);
             FileUtils.write(new File(new File(outputDirectory, "cuis"), file.getName()), cuis);
             FileUtils.write(new File(new File(outputDirectory, "granular"), file.getName()), granular);
+            FileUtils.write(new File(new File(outputDirectory, "overview"), file.getName()), overview);
         }
+    }
+
+    private String getOverview(String rawText, String xmi) {
+        Overview overview = new Overview();
+        overview.rawText = rawText;
+        overview.xmi = xmi;
+        return gson.toJson(overview);
+    }
+
+    static class Overview {
+        String fname = "";
+        String loadID = "";
+        String loadTimestamp = "";
+
+        String rawText;
+        String xmi;
     }
 
     private static void ensureCorrectSetup(File masterFolder) throws IOException {

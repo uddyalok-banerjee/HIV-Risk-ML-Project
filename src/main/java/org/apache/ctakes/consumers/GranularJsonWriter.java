@@ -4,21 +4,15 @@ import com.google.gson.Gson;
 import org.apache.ctakes.typesystem.type.refsem.OntologyConcept;
 import org.apache.ctakes.typesystem.type.refsem.UmlsConcept;
 import org.apache.ctakes.typesystem.type.textsem.EventMention;
-import org.apache.ctakes.typesystem.type.textsem.IdentifiedAnnotation;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CASException;
 import org.apache.uima.cas.FeatureStructure;
 import org.apache.uima.fit.component.JCasAnnotator_ImplBase;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
-import org.apache.uima.jcas.cas.FSArray;
-import org.cleartk.util.ViewUriUtil;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class GranularJsonWriter extends JCasAnnotator_ImplBase {
 
@@ -86,7 +80,7 @@ public class GranularJsonWriter extends JCasAnnotator_ImplBase {
         this.result = outputString;
     }
 
-    private class GranularInfo {
+    static class GranularInfo {
         String fname = "";
         String loadID = "";
         String loadTimestamp = "";
