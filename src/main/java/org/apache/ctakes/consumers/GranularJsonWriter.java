@@ -89,7 +89,7 @@ public class GranularJsonWriter extends JCasAnnotator_ImplBase {
 
         int polarity;
         float confidence;
-        float uncertainty;
+        int uncertainty;
         int startPosition;
         int endPosition;
         String coveredText;
