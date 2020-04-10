@@ -37,6 +37,7 @@ public class GranularJsonWriter extends JCasAnnotator_ImplBase {
         for (EventMention eventMention : JCasUtil.select(jCas, EventMention.class)) {
 
             int polarity = eventMention.getPolarity();
+            int uncertainty = eventMention.getUncertainty();
             float confidence = eventMention.getConfidence();
             int startPosition = eventMention.getBegin();
             int endPosition = eventMention.getEnd();
@@ -53,7 +54,8 @@ public class GranularJsonWriter extends JCasAnnotator_ImplBase {
 
                 gi.polarity = polarity;
                 gi.confidence = confidence;
-                gi.starPosition = startPosition;
+                gi.uncertainty = uncertainty;
+                gi.startPosition = startPosition;
                 gi.endPosition = endPosition;
                 gi.coveredText = coveredText;
 
@@ -87,7 +89,8 @@ public class GranularJsonWriter extends JCasAnnotator_ImplBase {
 
         int polarity;
         float confidence;
-        int starPosition;
+        float uncertainty;
+        int startPosition;
         int endPosition;
         String coveredText;
 

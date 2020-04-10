@@ -150,18 +150,29 @@ public class RushNiFiPipeline implements AutoCloseable {
     void execute(File inputDirectory, File outputDirectory) throws Exception {
         for (File file : Objects.requireNonNull(inputDirectory.listFiles())) {
             String rawText = FileUtils.readFileToString(file);
+            String fileName = file.getName();
             CTakesResult result = getResult(file.getAbsolutePath(), 1, rawText);
-
             String xmi = result.getOutput();
-            String cuis = getCuis(xmi);
-            String granular = getGranular(xmi);
-            String overview = getOverview(rawText, xmi);
 
-            FileUtils.write(new File(new File(outputDirectory, "xmis"), file.getName()), xmi);
-            FileUtils.write(new File(new File(outputDirectory, "cuis"), file.getName()), cuis);
-            FileUtils.write(new File(new File(outputDirectory, "granular"), file.getName()), granular);
-            FileUtils.write(new File(new File(outputDirectory, "overview"), file.getName()), overview);
+            writeXmi(outputDirectory, fileName, xmi);
+            writeCui(outputDirectory, fileName, xmi);
+            write(outputDirectory, "granular", fileName, getGranular(xmi));
+            write(outputDirectory, "overview", fileName, getOverview(rawText, xmi));
         }
+    }
+
+    void writeXmi(File outputDirectory, String fileName, String xmi) throws IOException {
+        // hook for unit test
+//        write(outputDirectory, "xmis", fileName, xmi);
+    }
+
+    void writeCui(File outputDirectory, String fileName, String xmi) throws Exception {
+        // hook for unit test
+//        write(outputDirectory, "cuis", fileName, getCuis(xmi));
+    }
+
+    void write(File outputDirectory, String outputLocation, String fileName, String content) throws IOException {
+        FileUtils.write(new File(new File(outputDirectory, outputLocation), fileName), content);
     }
 
     private String getOverview(String rawText, String xmi) {

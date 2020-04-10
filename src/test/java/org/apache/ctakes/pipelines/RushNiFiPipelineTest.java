@@ -37,7 +37,7 @@ public class RushNiFiPipelineTest {
     }
 
     @SuppressWarnings("unused")
-    @Test (timeout = 60_000)
+    @Test(timeout = 60_000)
     public void testExecutePipeline() throws Exception {
 
         File inputDirectory = Paths.get("src/test/resources/input").toFile();
@@ -48,7 +48,16 @@ public class RushNiFiPipelineTest {
         // execute pipeline
         try (RushConfig config = new RushConfig(masterFolder.getAbsolutePath(), tempMasterFolder.getAbsolutePath())) {
             config.initialize();
-            try (RushNiFiPipeline pipeline = new RushNiFiPipeline(config, true)) {
+            try (RushNiFiPipeline pipeline = new RushNiFiPipeline(config, true) {
+
+                void writeXmi(File outputDirectory, String fileName, String xmi) throws IOException {
+                    write(outputDirectory, "xmis", fileName, xmi);
+                }
+
+                void writeCui(File outputDirectory, String fileName, String xmi) throws Exception {
+                    write(outputDirectory, "cuis", fileName, getCuis(xmi));
+                }
+            }) {
                 pipeline.execute(inputDirectory, outputDirectory);
             }
         }
@@ -70,16 +79,16 @@ public class RushNiFiPipelineTest {
 //            assertEquals(xmi, expectedXmi);
 
             String actualCuis = FileUtils.readFileToString(new File(actualCuiDir, file.getName()));
-            String expectedCuis = FileUtils.readFileToString(Paths.get(expectedOutputDir,"cuis", file.getName()).toFile());
+            String expectedCuis = FileUtils.readFileToString(Paths.get(expectedOutputDir, "cuis", file.getName()).toFile());
             assertEquals(expectedCuis, actualCuis);
 
             String actualGranular = FileUtils.readFileToString(new File(actualGranularDir, file.getName()));
-            String expectedGranular = FileUtils.readFileToString(Paths.get(expectedOutputDir,"granular", file.getName()).toFile());
-            assertEquals(expectedGranular, actualGranular);
+            String expectedGranular = FileUtils.readFileToString(Paths.get(expectedOutputDir, "granular", file.getName()).toFile());
+            assertEquals(file.getName(), expectedGranular, actualGranular);
 
             String actualOverview = FileUtils.readFileToString(new File(actualOverviewDir, file.getName()));
 
-            RushNiFiPipeline.Overview overview = gson.fromJson(actualOverview,RushNiFiPipeline.Overview.class);
+            RushNiFiPipeline.Overview overview = gson.fromJson(actualOverview, RushNiFiPipeline.Overview.class);
             assertEquals("", overview.fname);
             assertEquals("", overview.loadID);
             assertEquals("", overview.loadTimestamp);
