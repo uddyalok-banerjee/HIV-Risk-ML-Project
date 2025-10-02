@@ -9,3 +9,21 @@
 .git_old/HEAD
 .git_old/hooks/applypatch-msg.sample
 /scripts/deeivegan.sh
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+.env/
+.ipynb_checkpoints/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
